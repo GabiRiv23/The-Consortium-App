@@ -43,7 +43,6 @@ namespace TheConsortiumApp.Controllers
 
             // ✅ EMPRESA NORMAL → SOLO SUS DATOS
             int? empresaId = HttpContext.Session.GetInt32("EmpresaId");
-
             if (empresaId == null)
                 return RedirectToAction("Login", "Account");
 

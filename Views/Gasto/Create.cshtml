@@ -6,14 +6,14 @@
     @Html.AntiForgeryToken()
 
     <div class="mb-3">
-        <label>Concepto</label>
+        <label asp-for="Concepto" class="form-label"></label>
         <input asp-for="Concepto" class="form-control" />
+        <span asp-validation-for="Concepto" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label>Categoría</label>
-        <div class="mb-3">
-            <label class="form-label">Categoría</label>
+        <label asp-for="Categoria" class="form-label"></label>
+
             <select asp-for="Categoria" class="form-control">
                 <option value="">Seleccione...</option>
                 <option value="Sueldos">Sueldos</option>
@@ -24,22 +24,32 @@
                 <option value="Seguros">Seguros</option>
                 <option value="Otros">Otros</option>
             </select>
+
             <span asp-validation-for="Categoria" class="text-danger"></span>
         </div>
+
+    <div class="mb-3">
+        <label asp-for="Monto" class="form-label"></label>
+
+        <div class="input-group">
+            <span class="input-group-text">$</span>
+
+            <input asp-for="Monto"
+                   type="text"
+                   inputmode="numeric"
+                   class="form-control"
+                   id="monto" />
     </div>
 
     <div class="mb-3">
-        <label>Monto</label>
-        <input asp-for="Monto" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Fecha</label>
+        <label asp-for="FechaRegistro" class="form-label"></label>
         <input asp-for="FechaRegistro" type="date" class="form-control" />
+        <span asp-validation-for="FechaRegistro" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label>Consorcio</label>
+        <label asp-for="ConsorcioId" class="form-label"></label>
+
         <select asp-for="ConsorcioId" class="form-control">
             <option value="">Seleccione</option>
 

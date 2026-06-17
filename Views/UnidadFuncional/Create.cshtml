@@ -39,7 +39,6 @@
         <span asp-validation-for="Propietario" class="text-danger"></span>
     </div>
 
-    <!-- ✅ CONSORCIO COMO DESPLEGABLE -->
     <div class="mb-3">
         <label class="form-label">Edificio / Consorcio</label>
         <select asp-for="ConsorcioId" class="form-control">
@@ -51,17 +50,6 @@
             }
         </select>
         <span asp-validation-for="ConsorcioId" class="text-danger"></span>
-    </div>
-
-    <!-- ✅ EXPLICACIÓN (REEMPLAZA COEFICIENTE) -->
-    <div class="mb-3">
-        <label class="form-label">Participación en gastos</label>
-        <input class="form-control"
-               value="Se calcula automáticamente según ambientes y el total del edificio"
-               disabled />
-        <small class="text-muted">
-            Ejemplo: unidades más grandes pagan mayor porcentaje del gasto mensual.
-        </small>
     </div>
 
     <button type="submit" class="btn btn-success">Guardar</button>

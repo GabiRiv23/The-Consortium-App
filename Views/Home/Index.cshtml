@@ -4,11 +4,17 @@
 
 <div class="container mt-4">
 
-    <!--  HEADER -->
-    <div class="bg-light p-4 rounded shadow-sm mb-4">
-        <h2 class="text-primary fw-bold">📊 Tablero Principal</h2>
-        <p class="text-muted mb-0">
-            Panorama general del sistema de gestión de consorcios
+    <video class="position-absolute top-50 start-50 translate-middle w-100 h-100" style="object-fit: cover; opacity: 0.25; z-index: 1;" autoplay loop muted playsinline>
+        <source src="~/videos/consorcio-bg.mp4" type="video/mp4" />
+        Tu navegador no soporta video.
+    </video>
+
+    <div class="container position-relative p-5" style="z-index: 2;">
+        <h1 class="display-3 fw-bold mb-3 text-white">The Consortium App</h1>
+    </div>
+        </h1>
+        <p class="lead fw-normal text-light mb-4 fs-4 mx-auto" style="max-width: 650px;">
+            La solución definitiva, privada y escalable para la administración integral de consorcios, liquidación de expensas y control de gastos.
         </p>
     </div>
 
@@ -42,23 +48,28 @@
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card bg-danger text-white shadow-sm">
-                <div class="card-body">
-                    <h6 class="mb-1">Gastos del Mes</h6>
-                    <h4 class="fw-bold">$@ViewBag.GastosMesActual</h4>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!--  ACCESOS RÁPIDOS -->
-    <div class="row g-3 text-center mb-4">
+                    <div class="d-grid">
+                        <a asp-controller="Consorcio" asp-action="Index" class="btn btn-outline-primary">
+                            Ir a Consorcios
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="col-md-4">
-            <div class="card border-primary shadow-sm h-100">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="text-primary">Consorcios</h5>
-                        <p class="text-muted">
+                        <h5 class="fw-bold text-success">Unidades Funcionales</h5>
+                        <p class="text-muted mb-3">
+                            Visualiza y administra departamentos, propietarios y coeficientes.
+                        </p>
+                    </div>
+

@@ -12,7 +12,6 @@ namespace TheConsortiumApp.Models
         [StringLength(200, ErrorMessage = "La descripción no puede superar los 200 caracteres")]
         public string Concepto { get; set; } = string.Empty;
 
-        // Tipo de gasto para agrupar en el reporte: Mantenimiento, Honorarios, Encargados
         [Required(ErrorMessage = "Debe seleccionar la categoría del gasto")]
         public CategoriaGasto Categoria { get; set; }
 
@@ -25,7 +24,6 @@ namespace TheConsortiumApp.Models
         [DataType(DataType.Date)]
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
 
-        // Relación: Cada Gasto pertenece a un Consorcio específico
         [Required]
         public int ConsorcioId { get; set; }
 

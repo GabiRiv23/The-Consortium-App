@@ -6,12 +6,12 @@
 
 <h2>Gastos</h2>
 
-<!-- ✅ FILTROS (GET) -->
 <form method="get" class="row mb-3">
     <div class="col-md-4">
         <label>Consorcio</label>
         <select name="consorcioId" class="form-control">
-              Todos los consorcios
+            <option value="0">Todos los consorcios</option>
+
                 @foreach (var c in ViewBag.Consorcios)
                 {
                     if (c.Id == ViewBag.ConsorcioIdSeleccionado)
@@ -39,15 +39,12 @@
     <div class="col-md-2 d-flex align-items-end">
         <button class="btn btn-success w-100">Filtrar</button>
     </div>
-</form>
 
-<!-- ✅ BOTONES -->
 <div class="d-flex gap-2 mb-3">
     <a asp-action="Create" class="btn btn-primary">
         + Nuevo Gasto
     </a>
 
-    <!-- ✅ EXPORT PDF -->
     <a class="btn btn-outline-danger"
        asp-action="ExportPdf"
        asp-route-consorcioId="@ViewBag.ConsorcioIdSeleccionado"
@@ -57,25 +54,16 @@
     </a>
 </div>
 
-<!-- ✅ TOTAL ARRIBA -->
 <div class="alert alert-info">
-    <strong>Periodo:</strong> @($"{ViewBag.Year}-{((int)ViewBag.Month):D2}") |
-    <strong>Total gastos:</strong> $@($"{ViewBag.TotalGastos:0.00}")
-</div>
 
 <!-- ✅ TABLA -->
 <table class="table table-bordered">
     <thead>
         <tr>
             <th>Concepto</th>
-            <th>Categoría</th>
             <th>Monto</th>
-            <th>Fecha</th>
-            <th>Consorcio</th>
-            <th>Acciones</th>
         </tr>
     </thead>
-
     <tbody>
         @if (Model != null && Model.Any())
         {
@@ -83,18 +71,7 @@
             {
                 <tr>
                     <td>@g.Concepto</td>
-                    <td>@g.Categoria</td>
                     <td>$@g.Monto</td>
-                    <td>@g.FechaRegistro.ToShortDateString()</td>
-                    <td>@g.Consorcio?.Nombre</td>
-
-                    <td>
-                        <a asp-action="Delete" asp-route-id="@g.Id"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('¿Eliminar gasto?');">
-                            Eliminar
-                        </a>
-                    </td>
                 </tr>
             }
         }

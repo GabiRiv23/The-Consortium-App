@@ -1,21 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 using TheConsortiumApp.Data;
 using TheConsortiumApp.Models;
 using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace TheConsortiumApp.Controllers
 {
-    public enum CategoriaGasto
-    {
-        Sueldos = 1,
-        Mantenimiento = 2,
-        Servicios = 3,
-        Honorarios = 4,
-        Limpieza = 5,
-        Seguros = 6,
-        Otros = 99
-    }
     public class GastoController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -28,7 +21,18 @@ namespace TheConsortiumApp.Controllers
         // Helper: EmpresaId desde sesión
         private int? GetEmpresaId() => HttpContext.Session.GetInt32("EmpresaId");
 
+        // Helper: obtener mis consorcios
+        private async Task<List<Consorcio>> GetMisConsorciosAsync(int empresaId)
+        {
+            return await _context.Consorcios
+                .Where(c => c.EmpresaId == empresaId)
+                .OrderBy(c => c.Nombre)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         // ✅ LISTAR + FILTRAR (mes/año/consorcio) + TOTAL (SOLO MIS CONSORCIOS)
+        [HttpGet]
         public async Task<IActionResult> Index(int? consorcioId, int? year, int? month)
         {
             int? empresaId = GetEmpresaId();
@@ -38,12 +42,7 @@ namespace TheConsortiumApp.Controllers
             int y = year ?? DateTime.Today.Year;
             int m = month ?? DateTime.Today.Month;
 
-            // ✅ Dropdown: SOLO consorcios de MI empresa
-            var misConsorcios = await _context.Consorcios
-                .Where(c => c.EmpresaId == empresaId.Value)
-                .OrderBy(c => c.Nombre)
-                .AsNoTracking()
-                .ToListAsync();
+            var misConsorcios = await GetMisConsorciosAsync(empresaId.Value);
 
             ViewBag.Consorcios = misConsorcios;
             ViewBag.ConsorcioIdSeleccionado = consorcioId ?? 0;
@@ -62,7 +61,7 @@ namespace TheConsortiumApp.Controllers
             // Filtro mes/año
             query = query.Where(g => g.FechaRegistro.Year == y && g.FechaRegistro.Month == m);
 
-            // Filtro consorcio si selecciona uno
+            // Filtro por consorcio
             if (consorcioId.HasValue && consorcioId.Value > 0)
                 query = query.Where(g => g.ConsorcioId == consorcioId.Value);
 
@@ -76,45 +75,64 @@ namespace TheConsortiumApp.Controllers
             return View(gastos);
         }
 
-        // ✅ FORM CREAR (SOLO MIS CONSORCIOS)
+        // ✅ FORM CREAR
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             int? empresaId = GetEmpresaId();
             if (empresaId == null)
                 return RedirectToAction("Login", "Account");
 
-            ViewBag.Consorcios = await _context.Consorcios
-                .Where(c => c.EmpresaId == empresaId.Value)
-                .OrderBy(c => c.Nombre)
-                .ToListAsync();
-
-            return View();
+            ViewBag.Consorcios = await GetMisConsorciosAsync(empresaId.Value);
+            return View(new Gasto());
         }
 
-        // ✅ GUARDAR (validar que el consorcio pertenece a MI empresa)
+        // ✅ GUARDAR GASTO + FACTURA
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Gasto gasto)
+        public async Task<IActionResult> Create(Gasto gasto, IFormFile? archivoFactura)
         {
             int? empresaId = GetEmpresaId();
             if (empresaId == null)
                 return RedirectToAction("Login", "Account");
 
-            // Validar que el ConsorcioId sea de MI empresa
             bool consorcioValido = await _context.Consorcios
                 .AnyAsync(c => c.Id == gasto.ConsorcioId && c.EmpresaId == empresaId.Value);
 
             if (!consorcioValido)
                 ModelState.AddModelError("ConsorcioId", "Seleccione un consorcio válido.");
 
+            // Validación opcional del archivo
+            if (archivoFactura != null && archivoFactura.Length > 0)
+            {
+                var ext = Path.GetExtension(archivoFactura.FileName).ToLowerInvariant();
+                var permitidos = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".webp" };
+
+                if (!permitidos.Contains(ext))
+                    ModelState.AddModelError("", "Solo se permiten archivos PDF o imágenes (.jpg, .jpeg, .png, .webp).");
+            }
+
             if (!ModelState.IsValid)
             {
-                ViewBag.Consorcios = await _context.Consorcios
-                    .Where(c => c.EmpresaId == empresaId.Value)
-                    .OrderBy(c => c.Nombre)
-                    .ToListAsync();
-
+                ViewBag.Consorcios = await GetMisConsorciosAsync(empresaId.Value);
                 return View(gasto);
+            }
+
+            // Guardar factura si se adjunta archivo
+            if (archivoFactura != null && archivoFactura.Length > 0)
+            {
+                var nombreArchivo = Guid.NewGuid().ToString() + Path.GetExtension(archivoFactura.FileName);
+
+                if (!Directory.Exists(carpeta))
+                    Directory.CreateDirectory(carpeta);
+
+                var ruta = Path.Combine(carpeta, nombreArchivo);
+
+                using (var stream = new FileStream(ruta, FileMode.Create))
+                {
+                    await archivoFactura.CopyToAsync(stream);
+
+                gasto.ArchivoFactura = nombreArchivo;
             }
 
             _context.Gastos.Add(gasto);
@@ -123,7 +141,8 @@ namespace TheConsortiumApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ✅ ELIMINAR (solo si el gasto pertenece a mis consorcios)
+        // ✅ ELIMINAR (solo si pertenece a mis consorcios)
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             int? empresaId = GetEmpresaId();
@@ -146,7 +165,8 @@ namespace TheConsortiumApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ✅ EXPORTAR PDF (según filtros) + nombre del consorcio en el PDF
+        // ✅ EXPORTAR PDF
+        [HttpGet]
         public async Task<IActionResult> ExportPdf(int? consorcioId, int? year, int? month)
         {
             int? empresaId = GetEmpresaId();
@@ -156,9 +176,9 @@ namespace TheConsortiumApp.Controllers
             int y = year ?? DateTime.Today.Year;
             int m = month ?? DateTime.Today.Month;
 
-            // Consorcios permitidos
             var misConsorcios = await _context.Consorcios
                 .Where(c => c.EmpresaId == empresaId.Value)
+                .OrderBy(c => c.Nombre)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -186,7 +206,7 @@ namespace TheConsortiumApp.Controllers
 
             var total = gastos.Sum(g => g.Monto);
 
-            var pdfBytes = QuestPDF.Fluent.Document.Create(container =>
+            var pdfBytes = Document.Create(container =>
             {
                 container.Page(page =>
                 {
@@ -226,7 +246,7 @@ namespace TheConsortiumApp.Controllers
                             foreach (var g in gastos)
                             {
                                 table.Cell().Text(g.Concepto);
-                                table.Cell().Text(g.Categoria);
+                                table.Cell().Text(g.Categoria.ToString());
                                 table.Cell().Text($"${g.Monto:0.00}");
                                 table.Cell().Text(g.FechaRegistro.ToString("yyyy-MM-dd"));
                                 table.Cell().Text(g.Consorcio?.Nombre ?? "");

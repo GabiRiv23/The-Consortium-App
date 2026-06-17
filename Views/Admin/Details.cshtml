@@ -1,14 +1,22 @@
 ﻿@model TheConsortiumApp.Models.Empresa
 
+@{
+    ViewData["Title"] = "Detalle de Empresa";
+}
+
 <h2>Detalle de Empresa</h2>
 
-<div class="mb-3">
-    <strong>Email:</strong> @Model.Email <br />
-    <strong>Razón Social:</strong> @Model.RazonSocial <br />
-    <strong>CUIT:</strong> @Model.Cuit
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h4 class="mb-3">@Model.RazonSocial</h4>
+
+        <p class="mb-1"><strong>Email:</strong> @Model.Email</p>
+        <p class="mb-1"><strong>CUIT:</strong> @Model.Cuit</p>
+        <p class="mb-0"><strong>Total de consorcios:</strong> @Model.Consorcios.Count</p>
+</div>
 </div>
 
-<hr />
+<h4>Consorcios registrados</h4>
 
 <h4>Consorcios</h4>
 
